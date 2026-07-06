@@ -187,7 +187,9 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
   // PID Controller
   addItem(new ParamControl("jvePilot.settings.steer.pid",
                            "ADVANCED: PID Controller",
-                           "Use the PID controller instead of torque for steering.",
+                           "Use the PID controller instead of torque for steering."
+                           " This matches what sunnypilot runs on the Pacifica and Grand Cherokee,"
+                           " and reduces 'Turn Exceeds Steering Limit' warnings.",
                            "../assets/img_chffr_wheel.png",
                            this));
   // Vision Only
