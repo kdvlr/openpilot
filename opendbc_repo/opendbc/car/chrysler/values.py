@@ -109,18 +109,31 @@ class CarControllerParams:
       self.STEER_DELTA_UP = 14
       self.STEER_DELTA_DOWN = 14
       self.STEER_MAX = 361  # higher than this faults the EPS
+      safety_steer_max = 361  # CHRYSLER_RAM_HD_STEERING_LIMITS in safety_chrysler.h
     elif CP.carFingerprint in RAM_DT:
       self.STEER_DELTA_UP = 6
       self.STEER_DELTA_DOWN = 6
       self.STEER_MAX = 261  # EPS allows more, up to 350?
+      safety_steer_max = 350  # CHRYSLER_RAM_DT_STEERING_LIMITS in safety_chrysler.h
     elif CP.carFingerprint in JEEPS:
       self.STEER_DELTA_UP = 3 if use_pid else 6
       self.STEER_DELTA_DOWN = 3 if use_pid else 6
       self.STEER_MAX = 261  # EPS allows more, up to 350?
+      safety_steer_max = 261  # CHRYSLER_JEEPS_STEERING_LIMITS in safety_chrysler.h
     else:
       self.STEER_DELTA_UP = 3
       self.STEER_DELTA_DOWN = 3
       self.STEER_MAX = 261  # higher than this faults the EPS
+      safety_steer_max = 261  # CHRYSLER_STEERING_LIMITS in safety_chrysler.h
+
+    # user override of max steering torque (0 = stock), clamped to the cap the
+    # panda safety firmware enforces for this platform so commands aren't blocked
+    try:
+      custom_steer_max = int(float(params.get("jvePilot.settings.steer.maxTorque") or 0))
+    except ValueError:
+      custom_steer_max = 0
+    if custom_steer_max > 0:
+      self.STEER_MAX = max(50, min(custom_steer_max, safety_steer_max))
 
     self.ACC_CONTROL_STEP = 2  # 50Hz
 

@@ -18,6 +18,7 @@ inline static std::unordered_map<std::string, uint32_t> keys = {
     {"jvePilot.settings.steer.aolc", PERSISTENT},
     {"jvePilot.settings.steer.noMinimum", PERSISTENT},
     {"jvePilot.settings.steer.pid", PERSISTENT},
+    {"jvePilot.settings.steer.maxTorque", PERSISTENT},
     {"jvePilot.settings.autoEnableAcc", PERSISTENT},
     {"jvePilot.settings.deviceOffset", PERSISTENT},
     {"jvePilot.settings.reverseAccSpeedChange", PERSISTENT},

@@ -46,6 +46,7 @@ def manager_init() -> None:
     ("jvePilot.settings.steer.aolc", "1"),
     ("jvePilot.settings.steer.noMinimum", "0"),
     ("jvePilot.settings.steer.pid", "0"),
+    ("jvePilot.settings.steer.maxTorque", "0"),
     ("jvePilot.settings.autoEnableAcc", "1"),
     ("jvePilot.settings.blindspotHighlight", "1"),
     ("jvePilot.settings.deviceOffset", "0.00"),

@@ -160,6 +160,15 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
         "Compensate for mounting your device off-center in the windshield."
         "\nFor example, 0.04 if your device is 4cm left of center."
         "\nNOTE: This is not how far the CAMERA is off-center, but how far the MOUNT/DEVICE is off-center."
+    },
+    { "jvePilot.settings.steer.maxTorque",
+      0, 361,
+      "Max Steer Torque",
+      "Default: 0 (stock limit for your car), Min: 0, Max: 361\n"
+        "Overrides the maximum steering torque request to reduce 'Turn Exceeds Steering Limit' warnings."
+        "\nValues are capped at the safety firmware limit for your platform:"
+        " 261 Pacifica/Durango/Jeep, 350 Ram 1500, 361 Ram HD."
+        "\nTakes effect on the next drive (restart the car)."
     }
   };
   addItem(new LabelControl("jvePilot Control Settings",

@@ -26,6 +26,10 @@ PEDAL_GAS_PRESSED_XP = [0, 32, 255]
 PEDAL_BRAKE_PRESSED_XP = [0, 24, 255]
 PEDAL_PRESSED_YP = [0, 128, 255]
 
+# EPS_2 is 100Hz; the EPS can report LKAS_STATE 4 for a short burst during hard
+# braking / ABS events and then recover, so only a sustained fault is permanent
+LKAS_FAULT_PERMANENT_FRAMES = 100  # 1s
+
 class CarState(CarStateBase):
   def __init__(self, CP):
     super().__init__(CP)
@@ -35,6 +39,7 @@ class CarState(CarStateBase):
     self.auto_high_beam = 0
     self.button_counter = 0
     self.lkas_car_model = -1
+    self.lkas_fault_frames = 0
 
     if CP.carFingerprint in RAM_CARS:
       self.shifter_values = can_define.dv["Transmission_Status"]["Gear_State"]
@@ -182,8 +187,11 @@ class CarState(CarStateBase):
         self.above_steer_angle_alert = False
 
       backward = cp.vl["ESP_6"]["MOVING_FORWARD"] == 0 and ret.vEgoRaw > 0
-      ret.steerFaultTemporary = cp.vl["EPS_2"]["LKAS_TEMPORARY_FAULT"] == 1 or cp.vl["EPS_2"]["LKAS_STATE"] == 12 or self.above_steer_angle_alert or backward
-      ret.steerFaultPermanent = cp.vl["EPS_2"]["LKAS_STATE"] == 4
+      lkas_fault = cp.vl["EPS_2"]["LKAS_STATE"] == 4
+      self.lkas_fault_frames = self.lkas_fault_frames + 1 if lkas_fault else 0
+      ret.steerFaultPermanent = self.lkas_fault_frames > LKAS_FAULT_PERMANENT_FRAMES
+      ret.steerFaultTemporary = cp.vl["EPS_2"]["LKAS_TEMPORARY_FAULT"] == 1 or cp.vl["EPS_2"]["LKAS_STATE"] == 12 or self.above_steer_angle_alert or backward \
+                                or (lkas_fault and not ret.steerFaultPermanent)
 
     # blindspot sensors
     if self.CP.enableBsm:
