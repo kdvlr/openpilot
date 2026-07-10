@@ -75,7 +75,11 @@ class CarInterface(CarInterfaceBase):
         ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.15, 0.30], [0.03, 0.05]]
         ret.lateralTuning.pid.kf = 0.00006
 
-      ret.experimentalLongitudinalAvailable = False # candidate not in HYBRID_CARS
+      # Expose the "openpilot Longitudinal Control (Alpha)" developer toggle for the gas
+      # Pacifica. It stays inert until that toggle is enabled (longControl also requires
+      # ExperimentalLongitudinalEnabled). The gas engine-torque long path is the same one
+      # the gas Jeep Grand Cherokee already uses, and all its signals are parsed here.
+      ret.experimentalLongitudinalAvailable = candidate == CAR.CHRYSLER_PACIFICA_2018
 
     # Jeep
     elif candidate in (CAR.JEEP_GRAND_CHEROKEE, CAR.JEEP_GRAND_CHEROKEE_2019):
