@@ -69,10 +69,12 @@ class CarInterface(CarInterfaceBase):
     # Chrysler
     if candidate in (CAR.CHRYSLER_PACIFICA_2018, CAR.CHRYSLER_PACIFICA_2018_HYBRID, CAR.CHRYSLER_PACIFICA_2019_HYBRID,
                      CAR.CHRYSLER_PACIFICA_2020, CAR.DODGE_DURANGO):
-      # Measured steering delay on the Pacifica is ~0.15s (log cross-correlation of
-      # desired vs actual curvature), not the 0.1s default; the low value made the
-      # controller under-anticipate and overshoot the lane through curves.
-      ret.steerActuatorDelay = 0.15
+      # Measured steering delay on the Pacifica is ~0.18s (log cross-correlation of
+      # desired vs actual curvature across multiple drives), well above the 0.1s
+      # default; under-representing it made the controller under-anticipate and
+      # overshoot the lane through curves. 0.17 sits just under the measurement.
+      # Tracking has no steady-state bias, so the torque feedforward is left alone.
+      ret.steerActuatorDelay = 0.17
 
       if params.get_bool("jvePilot.settings.steer.pid"):
         ret.lateralTuning.init('pid')
