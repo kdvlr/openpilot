@@ -35,6 +35,7 @@ class CarController(CarControllerBase):
     self.hud_count = 0
     self.next_lkas_control_change = 0
     self.lkas_control_bit_prev = False
+    self.calm_frames = 0
     self.last_button_frame = 0
 
     self.packer = CANPacker(dbc_names[Bus.pt])
@@ -119,17 +120,30 @@ class CarController(CarControllerBase):
       elif CS.out.vEgo < (self.CP.minSteerSpeed - self.steer_gap):
         lkas_control_bit = False
 
-      if self.low_steer and self.lkas_control_bit_prev:
-        # low steer vehicles never turn this off
-        lkas_control_bit = True
+      # Graceful release instead of the old unconditional low-steer pin. Log analysis of
+      # 8 fault onsets plus transition-rate counts over 33 routes showed this EPS:
+      #  - latches LKAS_STATE 4 ~50% of the time, within ~40ms, if the LKAS bit drops
+      #    while the driver has torque on a moving wheel;
+      #  - latches ~3% per event when the bit stays pinned on during manual driving while
+      #    the driver works the wheel through a decel (the "LKAS Fault when braking" bug);
+      #  - never faulted on a bit enable (0/20 observed, with the 70-frame guard below).
+      # So let the bit follow latActive, but after disengage HOLD it until the wheel is
+      # calm before dropping. Worst case (wheel never calm) degrades to the old pin.
+      if self.low_steer and self.lkas_control_bit_prev and not lkas_control_bit:
+        calm = abs(CS.out.steeringTorque) < 100 and abs(CS.out.steeringRateDeg) < 40 and CS.out.aEgo > -1.0
+        self.calm_frames = self.calm_frames + 1 if calm else 0
+        if self.calm_frames < max(1, 50 // self.params.STEER_STEP):  # ~0.5s of calm
+          lkas_control_bit = True
       else:
-        # EPS faults if LKAS enables too quickly
-        if lkas_control_bit and self.lkas_control_bit_prev != lkas_control_bit:
-          if self.next_lkas_control_change == 0:
-            self.next_lkas_control_change = self.frame + 70
-        else:
-          self.next_lkas_control_change = 0
-        lkas_control_bit = lkas_control_bit and (self.frame > self.next_lkas_control_change)
+        self.calm_frames = 0
+
+      # EPS faults if LKAS enables too quickly
+      if lkas_control_bit and self.lkas_control_bit_prev != lkas_control_bit:
+        if self.next_lkas_control_change == 0:
+          self.next_lkas_control_change = self.frame + 70
+      else:
+        self.next_lkas_control_change = 0
+      lkas_control_bit = lkas_control_bit and (self.frame > self.next_lkas_control_change)
 
       self.lkas_control_bit_prev = lkas_control_bit
 
