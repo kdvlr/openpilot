@@ -119,15 +119,7 @@ class CarController(CarControllerBase):
       elif CS.out.vEgo < (self.CP.minSteerSpeed - self.steer_gap):
         lkas_control_bit = False
 
-      # Old-EPS Pacificas latch LKAS_STATE 4 ("LKAS Fault: Restart the Car") when LKAS
-      # stays enabled through a hard decel while the driver is putting torque into the
-      # wheel. Log analysis of 4 such faults found the EPS pinned into LKAS mode by the
-      # branch below while latActive was already 0 -- i.e. we were claiming LKAS was
-      # active while commanding nothing. Release the pin in exactly that case; since we
-      # aren't steering then, this costs no lateral control.
-      idle_hard_decel = (not CC.latActive) and CS.out.aEgo < -1.5
-
-      if self.low_steer and self.lkas_control_bit_prev and not idle_hard_decel:
+      if self.low_steer and self.lkas_control_bit_prev:
         # low steer vehicles never turn this off
         lkas_control_bit = True
       else:
